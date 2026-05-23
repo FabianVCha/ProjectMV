@@ -1,227 +1,9 @@
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: andres-vim
-  labels:
-    owner: andres-vim
-
----
-# Secret pod-A andres-vim
-apiVersion: v1
-kind: Secret
-metadata:
-  name: openclaw-pod-a-secrets
-  namespace: andres-vim
-type: Opaque
-stringData:
-  # Segundo token generado con openssl
-  OPENCLAW_GATEWAY_TOKEN: "3d04b004d8314c07ad5337f45277b21230516ac7ed5886eacde3d9af15387ac6"
-  GEMINI_API_KEY: ""
-  ANTHROPIC_API_KEY: ""
-  OPENAI_API_KEY: ""
-  OPENROUTER_API_KEY: ""
-
----
-# Secret pod-B andres-vim
-apiVersion: v1
-kind: Secret
-metadata:
-  name: openclaw-pod-b-secrets
-  namespace: andres-vim
-type: Opaque
-stringData:
-  # Tercer token generado con openssl
-  OPENCLAW_GATEWAY_TOKEN: "fe189d2bb3ce0881515e7a7b6819c24337ff858fc788ff470be2fe8c6fe1c99a"
-  GEMINI_API_KEY: ""
-  ANTHROPIC_API_KEY: ""
-  OPENAI_API_KEY: ""
-  OPENROUTER_API_KEY: ""
-
----
-# ConfigMap pod-A andres-vim
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: openclaw-pod-a-config
-  namespace: andres-vim
-data:
-  openclaw.json: |
-    {
-      "gateway": {
-        "mode": "local",
-        "bind": "loopback",
-        "port": 18789,
-        "auth": {
-          "mode": "token"
-        },
-        "controlUi": {
-          "enabled": true
-        }
-      },
-      "agents": {
-        "defaults": {
-          "workspace": "~/.openclaw/workspace",
-          "models": {
-            "opencode-go/kimi-k2.6": {}
-          },
-          "model": {
-            "primary": "opencode-go/kimi-k2.6"
-          }
-        },
-        "list": [
-          {
-            "id": "planner",
-            "name": "Planner",
-            "workspace": "~/.openclaw/agents/planner/workspace"
-          },
-          {
-            "id": "researcher",
-            "name": "Researcher",
-            "workspace": "~/.openclaw/agents/researcher/workspace"
-          },
-          {
-            "id": "coder",
-            "name": "Coder",
-            "workspace": "~/.openclaw/agents/coder/workspace"
-          }
-        ]
-      },
-      "cron": {
-        "enabled": false
-      },
-      "plugins": {
-        "entries": {
-          "opencode-go": {
-            "enabled": true
-          }
-        }
-      },
-      "auth": {
-        "profiles": {
-          "opencode-go:default": {
-            "provider": "opencode-go",
-            "mode": "api_key"
-          }
-        }
-      },
-      "meta": {
-        "lastTouchedVersion": "2026.5.19",
-        "lastTouchedAt": "2026-05-21T03:59:57.264Z"
-      }
-    }
-  AGENTS.md: |
-    # OpenClaw - Usuario 2 - Gateway Principal
-
-    Eres el asistente principal del usuario 2.
-
----
-# ConfigMap pod-B andres-vim
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: openclaw-pod-b-config
-  namespace: andres-vim
-data:
-  openclaw.json: |
-    {
-      "gateway": {
-        "mode": "local",
-        "bind": "lan",
-        "port": 18789,
-        "auth": {
-          "mode": "token"
-        },
-        "controlUi": {
-          "enabled": true
-        }
-      },
-      "agents": {
-        "defaults": {
-          "workspace": "~/.openclaw/workspace",
-          "models": {
-            "opencode-go/kimi-k2.6": {}
-          },
-          "model": {
-            "primary": "opencode-go/kimi-k2.6"
-          }
-        },
-        "list": [
-          {
-            "id": "external",
-            "name": "External Agent",
-            "workspace": "~/.openclaw/workspace"
-          }
-        ]
-      },
-      "cron": {
-        "enabled": false
-      },
-      "plugins": {
-        "entries": {
-          "opencode-go": {
-            "enabled": true
-          }
-        }
-      },
-      "auth": {
-        "profiles": {
-          "opencode-go:default": {
-            "provider": "opencode-go",
-            "mode": "api_key"
-          }
-        }
-      },
-      "meta": {
-        "lastTouchedVersion": "2026.5.19",
-        "lastTouchedAt": "2026-05-21T03:59:57.264Z"
-      }
-    }
-  AGENTS.md: |
-    # OpenClaw - Usuario 2 - Sub-agente Externo
-
-    Eres un agente especializado del usuario 2.
-
----
-# PVC pod-A andres-vim
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: openclaw-pod-a-home
-  namespace: andres-vim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
-  storageClass: local-path
-
----
-# PVC pod-B andres-vim
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: openclaw-pod-b-home
-  namespace: andres-vim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  storageClass: local-path
-
----
-# Deployment pod-A andres-vim
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openclaw-pod-a
-  namespace: andres-vim
   labels:
     app: openclaw-pod-a
-    usuario: andres-vim
     role: gateway-principal
 spec:
   replicas: 1
@@ -234,7 +16,6 @@ spec:
     metadata:
       labels:
         app: openclaw-pod-a
-        usuario: andres-vim
         role: gateway-principal
     spec:
       automountServiceAccountToken: false
@@ -416,15 +197,12 @@ spec:
           emptyDir: {}
 
 ---
-# Deployment pod-B andres-vim (idéntico al de fabian-morgan pero sin Discord por ahora)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openclaw-pod-b
-  namespace: andres-vim
   labels:
     app: openclaw-pod-b
-    usuario: andres-vim
     role: agente-externo
 spec:
   replicas: 1
@@ -437,7 +215,6 @@ spec:
     metadata:
       labels:
         app: openclaw-pod-b
-        usuario: andres-vim
         role: agente-externo
     spec:
       automountServiceAccountToken: false
@@ -617,35 +394,3 @@ spec:
           emptyDir: {}
         - name: npm-cache
           emptyDir: {}
-
----
-# Service pod-A andres-vim
-apiVersion: v1
-kind: Service
-metadata:
-  name: openclaw-pod-a
-  namespace: andres-vim
-spec:
-  selector:
-    app: openclaw-pod-a
-  ports:
-    - name: gateway
-      port: 18789
-      targetPort: 18789
-  type: ClusterIP
-
----
-# Service pod-B andres-vim
-apiVersion: v1
-kind: Service
-metadata:
-  name: openclaw-pod-b
-  namespace: andres-vim
-spec:
-  selector:
-    app: openclaw-pod-b
-  ports:
-    - name: gateway
-      port: 18789
-      targetPort: 18789
-  type: ClusterIP

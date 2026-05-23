@@ -1,0 +1,92 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-pod-a-config
+  namespace: andres-vim
+data:
+  openclaw.json: |
+    {
+      "gateway": {
+        "mode": "local",
+        "bind": "loopback",
+        "port": 18789,
+        "auth": { "mode": "token" },
+        "controlUi": { "enabled": true }
+      },
+      "agents": {
+        "defaults": {
+          "workspace": "~/.openclaw/workspace",
+          "models": { "opencode-go/kimi-k2.6": {} },
+          "model": { "primary": "opencode-go/kimi-k2.6" }
+        },
+        "list": [
+          { "id": "planner", "name": "Planner", "workspace": "~/.openclaw/agents/planner/workspace" },
+          { "id": "researcher", "name": "Researcher", "workspace": "~/.openclaw/agents/researcher/workspace" },
+          { "id": "coder", "name": "Coder", "workspace": "~/.openclaw/agents/coder/workspace" }
+        ]
+      },
+      "cron": { "enabled": false },
+      "plugins": {
+        "entries": {
+          "opencode-go": { "enabled": true }
+        }
+      },
+      "auth": {
+        "profiles": {
+          "opencode-go:default": { "provider": "opencode-go", "mode": "api_key" }
+        }
+      }
+    }
+  AGENTS.md: |
+    # OpenClaw — andres-vim — Gateway Principal
+
+    Eres el asistente principal de andres-vim.
+
+    ## Agentes
+    - **Planner**: descompone tareas complejas en pasos ejecutables
+    - **Researcher**: busca y sintetiza información
+    - **Coder**: implementa, revisa y depura código
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-pod-b-config
+  namespace: andres-vim
+data:
+  openclaw.json: |
+    {
+      "gateway": {
+        "mode": "local",
+        "bind": "lan",
+        "port": 18789,
+        "auth": { "mode": "token" },
+        "controlUi": { "enabled": true }
+      },
+      "agents": {
+        "defaults": {
+          "workspace": "~/.openclaw/workspace",
+          "models": { "opencode-go/kimi-k2.6": {} },
+          "model": { "primary": "opencode-go/kimi-k2.6" }
+        },
+        "list": [
+          { "id": "external", "name": "External Agent", "workspace": "~/.openclaw/workspace" }
+        ]
+      },
+      "cron": { "enabled": false },
+      "plugins": {
+        "entries": {
+          "opencode-go": { "enabled": true }
+        }
+      },
+      "auth": {
+        "profiles": {
+          "opencode-go:default": { "provider": "opencode-go", "mode": "api_key" }
+        }
+      }
+    }
+  AGENTS.md: |
+    # OpenClaw — andres-vim — Sub-agente Externo
+
+    Eres un agente especializado del namespace andres-vim.

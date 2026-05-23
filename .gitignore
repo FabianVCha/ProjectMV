@@ -1,0 +1,9 @@
+*.env
+.env*
+*secrets.real.yaml
+*secrets.local.yaml
+kubeconfig
+kubeconfig.yaml
+.kube/
+.DS_Store
+Thumbs.db

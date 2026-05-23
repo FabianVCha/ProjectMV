@@ -1,0 +1,80 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      overlay:
+        description: 'Overlay a desplegar'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - fabian-morgan
+          - andres-vim
+
+jobs:
+  deploy:
+    name: Deploy Kustomize overlays
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Verify cluster connection
+        run: kubectl get nodes
+
+      - name: Inject secrets - fabian-morgan
+        if: ${{ github.event.inputs.overlay == 'all' || github.event.inputs.overlay == 'fabian-morgan' || github.event_name == 'push' }}
+        run: |
+          sed -i \
+            -e "s|\${FABIAN_POD_A_GATEWAY_TOKEN}|${{ secrets.FABIAN_POD_A_GATEWAY_TOKEN }}|g" \
+            -e "s|\${FABIAN_POD_B_GATEWAY_TOKEN}|${{ secrets.FABIAN_POD_B_GATEWAY_TOKEN }}|g" \
+            -e "s|\${FABIAN_TELEGRAM_BOT_TOKEN}|${{ secrets.FABIAN_TELEGRAM_BOT_TOKEN }}|g" \
+            -e "s|\${FABIAN_DISCORD_BOT_TOKEN}|${{ secrets.FABIAN_DISCORD_BOT_TOKEN }}|g" \
+            -e "s|\${FABIAN_GEMINI_API_KEY}|${{ secrets.FABIAN_GEMINI_API_KEY }}|g" \
+            -e "s|\${FABIAN_ANTHROPIC_API_KEY}|${{ secrets.FABIAN_ANTHROPIC_API_KEY }}|g" \
+            -e "s|\${FABIAN_OPENAI_API_KEY}|${{ secrets.FABIAN_OPENAI_API_KEY }}|g" \
+            -e "s|\${FABIAN_OPENROUTER_API_KEY}|${{ secrets.FABIAN_OPENROUTER_API_KEY }}|g" \
+            overlays/fabian-morgan/secret.yaml
+
+      - name: Inject secrets - andres-vim
+        if: ${{ github.event.inputs.overlay == 'all' || github.event.inputs.overlay == 'andres-vim' || github.event_name == 'push' }}
+        run: |
+          sed -i \
+            -e "s|\${ANDRES_POD_A_GATEWAY_TOKEN}|${{ secrets.ANDRES_POD_A_GATEWAY_TOKEN }}|g" \
+            -e "s|\${ANDRES_POD_B_GATEWAY_TOKEN}|${{ secrets.ANDRES_POD_B_GATEWAY_TOKEN }}|g" \
+            -e "s|\${ANDRES_GEMINI_API_KEY}|${{ secrets.ANDRES_GEMINI_API_KEY }}|g" \
+            -e "s|\${ANDRES_ANTHROPIC_API_KEY}|${{ secrets.ANDRES_ANTHROPIC_API_KEY }}|g" \
+            -e "s|\${ANDRES_OPENAI_API_KEY}|${{ secrets.ANDRES_OPENAI_API_KEY }}|g" \
+            -e "s|\${ANDRES_OPENROUTER_API_KEY}|${{ secrets.ANDRES_OPENROUTER_API_KEY }}|g" \
+            overlays/andres-vim/secret.yaml
+
+      - name: Deploy fabian-morgan
+        if: ${{ github.event.inputs.overlay == 'all' || github.event.inputs.overlay == 'fabian-morgan' || github.event_name == 'push' }}
+        run: kubectl apply -k overlays/fabian-morgan/
+
+      - name: Deploy andres-vim
+        if: ${{ github.event.inputs.overlay == 'all' || github.event.inputs.overlay == 'andres-vim' || github.event_name == 'push' }}
+        run: kubectl apply -k overlays/andres-vim/
+
+      - name: Verify pods - fabian-morgan
+        if: ${{ github.event.inputs.overlay == 'all' || github.event.inputs.overlay == 'fabian-morgan' || github.event_name == 'push' }}
+        run: |
+          kubectl rollout status deployment/openclaw-pod-a -n fabian-morgan --timeout=300s
+          kubectl rollout status deployment/openclaw-pod-b -n fabian-morgan --timeout=300s
+
+      - name: Verify pods - andres-vim
+        if: ${{ github.event.inputs.overlay == 'all' || github.event.inputs.overlay == 'andres-vim' || github.event_name == 'push' }}
+        run: |
+          kubectl rollout status deployment/openclaw-pod-a -n andres-vim --timeout=300s
+          kubectl rollout status deployment/openclaw-pod-b -n andres-vim --timeout=300s
