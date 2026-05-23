@@ -72,7 +72,7 @@ data:
         "controlUi": { "enabled": true },
         "http":{"endpoints":{
                   "chatCompletions":{
-                    "enable": true
+                    "enabled": true
                    }
                 }
             }
