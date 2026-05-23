@@ -1,0 +1,42 @@
+---
+# Service pod-A: accesible internamente en el cluster
+# DNS: openclaw-pod-a.fabian-morgan.svc.cluster.local:18789
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw-pod-a
+  namespace: fabian-morgan
+  labels:
+    app: openclaw-pod-a
+    usuario: fabian-morgan
+spec:
+  selector:
+    app: openclaw-pod-a
+  ports:
+    - name: gateway
+      port: 18789
+      targetPort: 18789
+      protocol: TCP
+  type: ClusterIP
+
+---
+# Service pod-B: accesible internamente en el cluster
+# DNS: openclaw-pod-b.fabian-morgan.svc.cluster.local:18789
+# pod-A puede llamar a pod-B en esta dirección
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw-pod-b
+  namespace: fabian-morgan
+  labels:
+    app: openclaw-pod-b
+    usuario: fabian-morgan
+spec:
+  selector:
+    app: openclaw-pod-b
+  ports:
+    - name: gateway
+      port: 18789
+      targetPort: 18789
+      protocol: TCP
+  type: ClusterIP

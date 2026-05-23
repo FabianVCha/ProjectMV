@@ -1,0 +1,29 @@
+---
+# PVC pod-A: 10Gi para el gateway principal
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openclaw-pod-a-home
+  namespace: fabian-morgan
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClass: local-path
+
+---
+# PVC pod-B: 5Gi para el sub-agente (necesita menos espacio)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openclaw-pod-b-home
+  namespace: fabian-morgan
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClass: local-path
