@@ -69,7 +69,13 @@ data:
         "bind": "lan",
         "port": 18789,
         "auth": { "mode": "token" },
-        "controlUi": { "enabled": true }
+        "controlUi": { "enabled": true },
+        "http":{"endpoints":{
+                  "chatCompletions":{
+                    "enable": true
+                   }
+                }
+            }
       },
       "agents": {
         "defaults": {
